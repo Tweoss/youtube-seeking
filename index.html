@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Youtube Times</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/Footer-Basic.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+<script src="./assets/js/showdown.min.js"></script>
+<script src="./assets/js/seeking.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center text-light">Youtube Times</h1>
+        <div class="row row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-2 row-cols-xxl-2">
+            <div class="col-auto"><div class="ratio ratio-16x9" id="video-div">
+	
+</div></div>
+            <div class="col-auto">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Time Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="timestamp">1:20 - 2:30</td>
+                                <td>Cell 2</td>
+                            </tr>
+                            <tr>
+                                <td>Cell 3</td>
+                                <td>Cell 4</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div><button class="btn btn-primary btn-lg btn-block" type="button" style="width: 100%;" data-bs-toggle="modal" data-bs-target="#loadText">Load from Text</button>
+        <footer></footer>
+        <div class="modal fade" role="dialog" tabindex="-1" id="loadText">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Load Configuration</h4><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body"><textarea id="loadTextArea" style="width: 100%;"></textarea></div>
+                    <div class="modal-footer"><button class="btn btn-light btn-sm" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary btn-sm" id="loadConfirm" type="submit">Load</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/seeking.js"></script>
+    <script src="assets/js/showdown.min.js"></script>
+</body>
+
+</html>
