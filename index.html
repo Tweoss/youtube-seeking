@@ -41,7 +41,14 @@
                     </table>
                 </div>
             </div>
-        </div><button class="btn btn-primary btn-lg btn-block" type="button" style="width: 100%;" data-bs-toggle="modal" data-bs-target="#loadText">Load from Text</button>
+        </div>
+        <form>
+            <div class="row">
+                <div class="col-4"><label class="form-label" for="repeats">Number of Repeats:&nbsp;<span id="repeatCountText">0</span></label><input class="form-range form-control" type="range" id="repeatCount" value="0" min="0" max="10" step="1"></div>
+                <div class="col-4"><label class="form-label"><span>Time Buffer:&nbsp;</span><span id="timeBufferText">0</span><span>&nbsp;seconds</span></label><input class="form-range form-control" type="range" id="bufferSize" value="0" min="0" max="60" step="1"></div>
+                <div class="col-4"><button class="btn btn-primary btn-lg btn-block" type="button" style="width: 100%;height: 100%;" data-bs-toggle="modal" data-bs-target="#loadText">Load from Text</button></div>
+            </div>
+        </form>
         <footer></footer>
         <div class="modal fade" role="dialog" tabindex="-1" id="loadText">
             <div class="modal-dialog" role="document">
@@ -49,7 +56,7 @@
                     <div class="modal-header">
                         <h4 class="modal-title">Load Configuration</h4><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body"><textarea id="loadTextArea" style="width: 100%;"></textarea></div>
+                    <div class="modal-body"><textarea id="loadTextArea" style="width: 100%;height: 10vw;"></textarea></div>
                     <div class="modal-footer"><button class="btn btn-light btn-sm" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary btn-sm" id="loadConfirm" type="submit">Load</button></div>
                 </div>
             </div>
