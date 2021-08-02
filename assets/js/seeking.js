@@ -14,8 +14,8 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 // player is the youtube player object
 var player,
-    // edge_timeout is a timeout to fire updating the time stamp selection or looping
-    edge_timeout = null,
+    // edge_interval is an interval to fire updating the time stamp selection or looping
+    edge_interval = null,
     // number of repeats for each segment
     repeat_count = 0,
     // length of buffer size in seconds
@@ -41,13 +41,19 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerStateChange(event) {
-    // clearTimeout(edge_timeout);
+    if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
+        // if the video is stopped, we need to stop the interval
+        clearInterval(edge_interval);
+    } else if (event.data == YT.PlayerState.PLAYING) {
+        // if the video is playing, we need to start the interval
+        edge_interval = setInterval(searchAndHighlight, 500);
+    }
+    // clearTimeout(edge_interval);
     // searchAndHighlight(player.getCurrentTime());
 }
 
 function onPlayerReady(pEvent) {
     player = pEvent.target;
-    console.log(player)
     window.addEventListener('load', function() {
         rewriteStamps(pEvent.target);
         document.getElementById("loadConfirm").addEventListener("click", function(e) {
@@ -117,18 +123,18 @@ function rewriteStamps() {
                 return timeToSeconds(s);
             })
             player.seekTo(times[0] - buffer_size, true);
-            // youtube slow to update currentTime, so we must delay
+            current_segment = index;
+            current_repeat = 0;
+            player.playVideo();
+            // youtube slow to update currentTime, so we must need to wait a bit. also don't want to wait half a second for the interval
             setTimeout(function() {
 
-                console.log("seeking to", times[0] - buffer_size, "current time is" + player.getCurrentTime());
-                current_segment = index;
-                current_repeat = 0;
-                player.playVideo();
-                clearTimeout(edge_timeout);
+                // console.log("seeking to", times[0] - buffer_size, "current time is" + player.getCurrentTime());
+                // clearTimeout(edge_interval);
                 searchAndHighlight();
-                edge_timeout = setTimeout(function() {
-                    searchAndHighlight();
-                }, (times[1] - times[0] + buffer_size + 1) * 1000);
+                // edge_interval = setTimeout(function() {
+                // searchAndHighlight();
+                // }, (times[1] - times[0] + buffer_size + 1) * 1000);
             }, 200);
         })
     });
@@ -160,25 +166,25 @@ function searchAndHighlight() {
     });
     const row = document.querySelectorAll("#table-body > tr")[index];
     console.log("seconds", seconds, "end", timeToSeconds(time_object[index].end));
-    clearTimeout(edge_timeout);
+    // clearTimeout(edge_interval);
     // set timeout to update when reaching either the end of a stamp or the beginning of another
     if (timeToSeconds(time_object[index].end) >= seconds) {
         row.classList.add("table-success");
         row.classList.remove("table-warning");
         current_repeat = 0;
-        edge_timeout = setTimeout(function() {
-            searchAndHighlight(player.getCurrentTime());
-        }, (timeToSeconds(time_object[index].end) - seconds + buffer_size + 0.5) * 1000);
-        console.log("timeout a ", (timeToSeconds(time_object[index].end) - seconds + buffer_size) * 1000);
+        // edge_interval = setTimeout(function() {
+        //     searchAndHighlight(player.getCurrentTime());
+        // }, (timeToSeconds(time_object[index].end) - seconds + buffer_size + 0.5) * 1000);
+        // console.log("timeout a ", (timeToSeconds(time_object[index].end) - seconds + buffer_size) * 1000);
     } else {
         row.classList.add("table-warning");
         row.classList.remove("table-success");
         // if not the last one, set a timeout for reaching the beginning of the next timestamp
         if (index + 1 != time_object.length) {
-            edge_timeout = setTimeout(function() {
-                searchAndHighlight(player.getCurrentTime());
-            }, (timeToSeconds(time_object[index + 1].start) - seconds) * 1000);
-            console.log("timeout b ", edge_timeout);
+            // edge_interval = setTimeout(function() {
+            //     searchAndHighlight(player.getCurrentTime());
+            // }, (timeToSeconds(time_object[index + 1].start) - seconds) * 1000);
+            // console.log("timeout b ", edge_interval);
         }
     }
     // }
