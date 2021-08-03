@@ -12,6 +12,8 @@ tag.src = 'https://www.youtube.com/iframe_api';
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
+
+
 // player is the youtube player object
 var player,
     // edge_interval is an interval to fire updating the time stamp selection or looping
@@ -20,8 +22,10 @@ var player,
     repeat_count = 0,
     // length of buffer size in seconds
     buffer_size = 0,
-    // current segment
-    current_segment = 0,
+    // current segment's start and end accounting for buffer
+    current_segment = { start: -Infinity, end: -Infinity },
+    // current index, used to check if segment needs to be updated
+    current_index = 0,
     // current repeat
     current_repeat = 0;
 
@@ -48,8 +52,6 @@ function onPlayerStateChange(event) {
         // if the video is playing, we need to start the interval
         edge_interval = setInterval(searchAndHighlight, 500);
     }
-    // clearTimeout(edge_interval);
-    // searchAndHighlight(player.getCurrentTime());
 }
 
 function onPlayerReady(pEvent) {
@@ -87,28 +89,15 @@ function onPlayerReady(pEvent) {
         });
 
         // update the variables according to input
-        document.getElementById("bufferSize").addEventListener("change", function(e) {
-            buffer_size = e.target.value;
+        document.getElementById("bufferSize").addEventListener("input", function(e) {
+            buffer_size = timeToSeconds(e.target.value);
             document.getElementById("timeBufferText").textContent = e.target.value;
         });
-        document.getElementById("repeatCount").addEventListener("change", function(e) {
+        document.getElementById("repeatCount").addEventListener("input", function(e) {
             repeat_count = e.target.value;
             document.getElementById("repeatCountText").textContent = e.target.value;
         });
-
-        // update the selection whenever there is a change
-        document.getElementById("video-div").contentWindow.addEventListener("click", function(e) {
-            alert("cilck")
-            setTimeout(function() {
-                searchAndHighlight();
-            }, 200);
-        }, true);
-        document.getElementById("video-div").contentDocument.addEventListener("keydown", function(e) {
-            searchAndHighlight();
-        }, true);
     })
-
-    // event.target.playVideo();
 }
 
 // rewrites the timestamps using time_object, adds the event listeners for seeking, playing, and stopping
@@ -123,71 +112,61 @@ function rewriteStamps() {
                 return timeToSeconds(s);
             })
             player.seekTo(times[0] - buffer_size, true);
-            current_segment = index;
-            current_repeat = 0;
             player.playVideo();
             // youtube slow to update currentTime, so we must need to wait a bit. also don't want to wait half a second for the interval
             setTimeout(function() {
-
-                // console.log("seeking to", times[0] - buffer_size, "current time is" + player.getCurrentTime());
-                // clearTimeout(edge_interval);
                 searchAndHighlight();
-                // edge_interval = setTimeout(function() {
-                // searchAndHighlight();
-                // }, (times[1] - times[0] + buffer_size + 1) * 1000);
             }, 200);
         })
     });
 }
 
 // sets all timestamps to default color. searches for the latest timestamp given seconds and changes that element to yellow. 
-// sets a timeout for when to call again, sets current_segment, current_repeat
+// sets a timeout for when to call again, sets current_segment, current_repeat, current_index
 function searchAndHighlight() {
     const seconds = player.getCurrentTime();
-    // if (time_object[current_segment].start < seconds && seconds < time_object[current_segment].end + 1 && current_repeat < repeat_count) {
-    //     current_repeat++;
-    //     player.seekTo(time_object[current_segment].start - buffer_size, true);
-    // } else {
+    if (seconds >= current_segment.start && seconds <= current_segment.end) {
+        console.log("doing nothing", seconds, current_segment);
+        return;
+        // } else if (seconds > current_segment.end && seconds < current_segment.end + 2 && current_repeat < repeat_count) {
+        //     current_repeat++;
+        //     player.seekTo(current_segment.start, true);
+    } else {
 
-    // index is the negative version of the would be insertion point when searching + 1
-    // the index before where we want is -index -2
-    let index = binarySearch(time_object, seconds, function(a, b) {
-        return a - timeToSeconds(b.start);
-    });
-    if (index < 0) {
-        // if not found, go to the previous element
-        index = -index - 2;
-    }
-    document.querySelectorAll("#table-body > tr").forEach(function(row, i) {
-        if (i != index) {
-            row.classList.remove("table-success");
-            row.classList.remove("table-warning");
+        let [index, closest_start] = findContains(time_object, seconds, buffer_size);
+
+        document.querySelectorAll("#table-body > tr").forEach(function(row, i) {
+            if (i != index) {
+                row.classList.remove("table-success");
+                row.classList.remove("table-warning");
+            }
+        });
+
+        if (index == -1) {
+            if (closest_start != -1) {
+                const row = document.querySelectorAll("#table-body > tr")[closest_start]
+                row.classList.remove("table-success");
+                row.classList.add("table-warning");
+                current_segment = { start: -Infinity, end: -Infinity };
+            }
+            return;
         }
-    });
-    const row = document.querySelectorAll("#table-body > tr")[index];
-    console.log("seconds", seconds, "end", timeToSeconds(time_object[index].end));
-    // clearTimeout(edge_interval);
-    // set timeout to update when reaching either the end of a stamp or the beginning of another
-    if (timeToSeconds(time_object[index].end) >= seconds) {
+
+        current_segment = {
+            start: timeToSeconds(time_object[index].start) - buffer_size,
+            end: timeToSeconds(time_object[index].end) + buffer_size,
+        };
+        // if its the same as the last segment and only changed b/c of buffer size, we should not keep repeating
+        if (index != current_index) {
+            current_repeat = 0;
+            current_index = index;
+        }
+        const row = document.querySelectorAll("#table-body > tr")[index];
         row.classList.add("table-success");
         row.classList.remove("table-warning");
-        current_repeat = 0;
-        // edge_interval = setTimeout(function() {
-        //     searchAndHighlight(player.getCurrentTime());
-        // }, (timeToSeconds(time_object[index].end) - seconds + buffer_size + 0.5) * 1000);
-        // console.log("timeout a ", (timeToSeconds(time_object[index].end) - seconds + buffer_size) * 1000);
-    } else {
-        row.classList.add("table-warning");
-        row.classList.remove("table-success");
-        // if not the last one, set a timeout for reaching the beginning of the next timestamp
-        if (index + 1 != time_object.length) {
-            // edge_interval = setTimeout(function() {
-            //     searchAndHighlight(player.getCurrentTime());
-            // }, (timeToSeconds(time_object[index + 1].start) - seconds) * 1000);
-            // console.log("timeout b ", edge_interval);
-        }
+
+        console.log("seconds", seconds, "end", timeToSeconds(time_object[index].end), current_segment);
     }
-    // }
 
 };
 
@@ -203,19 +182,20 @@ function timeToSeconds(s) {
 
 }
 
-function binarySearch(ar, el, compare_fn) {
-    var m = 0;
-    var n = ar.length - 1;
-    while (m <= n) {
-        var k = (n + m) >> 1;
-        var cmp = compare_fn(el, ar[k]);
-        if (cmp > 0) {
-            m = k + 1;
-        } else if (cmp < 0) {
-            n = k - 1;
-        } else {
-            return k;
+// find which group in a list of timestamps contains the given time
+// @param {array} list of timestamps
+// @param {number} time in seconds
+// @parama {buffer_size} the buffer in seconds on either side of the timestamps
+// @returns [{number},{number}] index of the group containing the time (or -1 if not found) and index of the closest starting timestamp
+function findContains(ar, time, buffer_size) {
+    let closest_start = -1;
+    for (let i = 0; i < ar.length; i++) {
+        if (timeToSeconds(ar[i].start) < time) {
+            closest_start = i;
+        }
+        if (time >= timeToSeconds(ar[i].start) - buffer_size && time <= timeToSeconds(ar[i].end) + buffer_size) {
+            return [i, closest_start];
         }
     }
-    return -m - 1;
+    return [-1, closest_start];
 }
