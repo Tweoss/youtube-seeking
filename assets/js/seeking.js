@@ -52,6 +52,8 @@ function onPlayerStateChange(event) {
         clearInterval(edge_interval);
         console.info("video stopped");
     } else if (event.data == YT.PlayerState.PLAYING) {
+        // youtube somehow can fire this playing event ... while playing
+        clearInterval(edge_interval);
         // if the video is playing, we need to start the interval
         edge_interval = setInterval(searchAndHighlight, 500);
         console.info("video started");
@@ -123,9 +125,9 @@ function rewriteStamps() {
             segment_jumped = true;
             player.playVideo();
             // youtube slow to update currentTime, so we must need to wait a bit. also don't want to wait half a second for the interval
-            setTimeout(function() {
-                searchAndHighlight();
-            }, 200);
+            // setTimeout(function() {
+            //     searchAndHighlight();
+            // }, 200);
         })
     });
 }
@@ -137,9 +139,9 @@ function searchAndHighlight() {
     if (!segment_jumped && seconds >= current_segment.start && seconds <= current_segment.end) {
         console.log("doing nothing", seconds, current_segment);
         return;
-        // } else if (seconds > current_segment.end && seconds < current_segment.end + 2 && current_repeat < repeat_count) {
-        //     current_repeat++;
-        //     player.seekTo(current_segment.start, true);
+    } else if (seconds > current_segment.end && seconds < current_segment.end + 2 && current_repeat < repeat_count) {
+        current_repeat++;
+        player.seekTo(current_segment.start, true);
     } else {
 
         let [index, closest_start] = findContains(time_object, seconds, buffer_size);
@@ -152,10 +154,8 @@ function searchAndHighlight() {
 
 
         document.querySelectorAll("#table-body > tr").forEach(function(row, i) {
-            if (i != index) {
-                row.classList.remove("table-success");
-                row.classList.remove("table-warning");
-            }
+            row.classList.remove("table-success");
+            row.classList.remove("table-warning");
         });
 
         if (index == -1) {
@@ -163,8 +163,8 @@ function searchAndHighlight() {
                 const row = document.querySelectorAll("#table-body > tr")[closest_start]
                 row.classList.remove("table-success");
                 row.classList.add("table-warning");
-                current_segment = { start: -Infinity, end: -Infinity };
             }
+            current_segment = { start: -Infinity, end: -Infinity };
             return;
         }
 
