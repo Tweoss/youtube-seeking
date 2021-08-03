@@ -27,7 +27,9 @@ var player,
     // current index, used to check if segment needs to be updated
     current_index = 0,
     // current repeat
-    current_repeat = 0;
+    current_repeat = 0,
+    // whether or not a segment was recently jumped to. this allows for coloring while overriding the normal search order
+    segment_jumped = false;
 
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('video-div', {
@@ -48,9 +50,11 @@ function onPlayerStateChange(event) {
     if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
         // if the video is stopped, we need to stop the interval
         clearInterval(edge_interval);
+        console.info("video stopped");
     } else if (event.data == YT.PlayerState.PLAYING) {
         // if the video is playing, we need to start the interval
         edge_interval = setInterval(searchAndHighlight, 500);
+        console.info("video started");
     }
 }
 
@@ -112,6 +116,11 @@ function rewriteStamps() {
                 return timeToSeconds(s);
             })
             player.seekTo(times[0] - buffer_size, true);
+            // give priority to this segment
+            current_segment = { start: times[0] - buffer_size, end: times[1] - buffer_size };
+            current_index = index;
+            current_repeat = 0;
+            segment_jumped = true;
             player.playVideo();
             // youtube slow to update currentTime, so we must need to wait a bit. also don't want to wait half a second for the interval
             setTimeout(function() {
@@ -125,7 +134,7 @@ function rewriteStamps() {
 // sets a timeout for when to call again, sets current_segment, current_repeat, current_index
 function searchAndHighlight() {
     const seconds = player.getCurrentTime();
-    if (seconds >= current_segment.start && seconds <= current_segment.end) {
+    if (!segment_jumped && seconds >= current_segment.start && seconds <= current_segment.end) {
         console.log("doing nothing", seconds, current_segment);
         return;
         // } else if (seconds > current_segment.end && seconds < current_segment.end + 2 && current_repeat < repeat_count) {
@@ -134,6 +143,13 @@ function searchAndHighlight() {
     } else {
 
         let [index, closest_start] = findContains(time_object, seconds, buffer_size);
+
+        // if the segment was recently jumped to, then there is no need to search
+        if (segment_jumped) {
+            segment_jumped = false;
+            index = current_index;
+        }
+
 
         document.querySelectorAll("#table-body > tr").forEach(function(row, i) {
             if (i != index) {
