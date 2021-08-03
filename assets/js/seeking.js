@@ -4,6 +4,7 @@ var time_object = [
     { start: "1:34", end: "1:36", description: "**This is a strong description**" },
 ]
 
+// markdown to html converter
 var converter = new showdown.Converter();
 
 var tag = document.createElement('script');
@@ -11,8 +12,6 @@ tag.id = 'iframe-script';
 tag.src = 'https://www.youtube.com/iframe_api';
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-
 
 // player is the youtube player object
 var player,
@@ -50,13 +49,11 @@ function onPlayerStateChange(event) {
     if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
         // if the video is stopped, we need to stop the interval
         clearInterval(edge_interval);
-        console.info("video stopped");
     } else if (event.data == YT.PlayerState.PLAYING) {
         // youtube somehow can fire this playing event ... while playing
         clearInterval(edge_interval);
         // if the video is playing, we need to start the interval
         edge_interval = setInterval(searchAndHighlight, 500);
-        console.info("video started");
     }
 }
 
@@ -64,6 +61,8 @@ function onPlayerReady(pEvent) {
     player = pEvent.target;
     window.addEventListener('load', function() {
         rewriteStamps(pEvent.target);
+
+        // loading custom files
         document.getElementById("loadConfirm").addEventListener("click", function(e) {
             let data = document.getElementById("loadTextArea").value;
             data = data.split('\n');
@@ -79,7 +78,7 @@ function onPlayerReady(pEvent) {
                     temp_time.start = time_string[0];
                     temp_time.end = time_string[1];
                 } else {
-                    temp_time.description = element;
+                    temp_time.description = element.replace(/\\n/g, '\n');
                     temp_time_object.push(temp_time);
                 }
             }
@@ -123,11 +122,8 @@ function rewriteStamps() {
             current_index = index;
             current_repeat = 0;
             segment_jumped = true;
+            resetBars();
             player.playVideo();
-            // youtube slow to update currentTime, so we must need to wait a bit. also don't want to wait half a second for the interval
-            // setTimeout(function() {
-            //     searchAndHighlight();
-            // }, 200);
         })
     });
 }
@@ -137,11 +133,16 @@ function rewriteStamps() {
 function searchAndHighlight() {
     const seconds = player.getCurrentTime();
     if (!segment_jumped && seconds >= current_segment.start && seconds <= current_segment.end) {
-        console.log("doing nothing", seconds, current_segment);
+        const bar = document.querySelector("#timeProgress > div");
+        bar.style.width = `${((seconds - current_segment.start) / (current_segment.end - current_segment.start) * 100)}%`;
+        bar.textContent = `${((seconds - current_segment.start) / (current_segment.end - current_segment.start) * 100).toFixed(0)}%`;
         return;
     } else if (seconds > current_segment.end && seconds < current_segment.end + 2 && current_repeat < repeat_count) {
         current_repeat++;
         player.seekTo(current_segment.start, true);
+        const bar = document.querySelector("#repeatProgress > div");
+        bar.style.width = `${current_repeat * 100 / repeat_count}%`;
+        bar.textContent = `${current_repeat}/${repeat_count}`;
     } else {
 
         let [index, closest_start] = findContains(time_object, seconds, buffer_size);
@@ -151,7 +152,6 @@ function searchAndHighlight() {
             segment_jumped = false;
             index = current_index;
         }
-
 
         document.querySelectorAll("#table-body > tr").forEach(function(row, i) {
             row.classList.remove("table-success");
@@ -164,7 +164,9 @@ function searchAndHighlight() {
                 row.classList.remove("table-success");
                 row.classList.add("table-warning");
             }
+            current_repeat = 0;
             current_segment = { start: -Infinity, end: -Infinity };
+            resetBars();
             return;
         }
 
@@ -172,16 +174,16 @@ function searchAndHighlight() {
             start: timeToSeconds(time_object[index].start) - buffer_size,
             end: timeToSeconds(time_object[index].end) + buffer_size,
         };
+
         // if its the same as the last segment and only changed b/c of buffer size, we should not keep repeating
         if (index != current_index) {
             current_repeat = 0;
             current_index = index;
+            resetBars();
         }
         const row = document.querySelectorAll("#table-body > tr")[index];
         row.classList.add("table-success");
         row.classList.remove("table-warning");
-
-        console.log("seconds", seconds, "end", timeToSeconds(time_object[index].end), current_segment);
     }
 
 };
@@ -214,4 +216,14 @@ function findContains(ar, time, buffer_size) {
         }
     }
     return [-1, closest_start];
+}
+
+
+function resetBars() {
+    const timeBar = document.querySelector("#timeProgress > div");
+    timeBar.style.width = '0%';
+    timeBar.textContent = '0%';
+    const repeatBar = document.querySelector("#repeatProgress > div");
+    repeatBar.style.width = '0%';
+    repeatBar.textContent = `0/${repeat_count}`;
 }
