@@ -105,7 +105,7 @@ function onPlayerReady(pEvent) {
             document.getElementById("repeatCountText").textContent = e.target.value;
         });
         document.getElementById("jumpNext").addEventListener("input", function(e) {
-            jump_next = e.target.value;
+            jump_next = e.target.checked;
         });
     })
 }
