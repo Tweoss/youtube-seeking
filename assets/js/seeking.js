@@ -109,7 +109,7 @@ function onPlayerReady(pEvent) {
             document.getElementById("repeatCountText").textContent = e.target.value;
         });
         document.getElementById("jumpNext").addEventListener("input", function(e) {
-            jump_next = e.target.checked;
+            jump_next = e.target.value;
         });
         document.getElementById("fadeVolume").addEventListener("input", function(e) {
             fade_between_jumps = e.target.checked;
