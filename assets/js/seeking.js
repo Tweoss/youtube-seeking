@@ -191,7 +191,7 @@ function searchAndHighlight() {
             }
         }
 
-        // set the time after the fade out
+        // set the time after the fade out or run immediately if not fading
         setTimeout(function() {
             player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size, true);
             current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size, end: timeToSeconds(time_object[current_index + 1].end) + buffer_size };
@@ -200,7 +200,7 @@ function searchAndHighlight() {
             current_repeat = 0;
             segment_jumped = true;
             resetBars();
-        }, seconds_to_fade * 1000);
+        }, fade_between_jumps ? seconds_to_fade * 1000 : 0);
     }
     // main logic to find and set segments, color, and set progress bars
     else {
