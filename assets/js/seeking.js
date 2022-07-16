@@ -61,11 +61,11 @@ function onPlayerStateChange(event) {
 
 function onPlayerReady(pEvent) {
     player = pEvent.target;
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         rewriteStamps(pEvent.target);
 
         // loading custom files
-        document.getElementById("loadConfirm").addEventListener("click", function(e) {
+        document.getElementById("loadConfirm").addEventListener("click", function (e) {
             let data = document.getElementById("loadTextArea").value;
             data = data.split('\n');
             let video_id = data.shift();
@@ -85,26 +85,26 @@ function onPlayerReady(pEvent) {
                 }
             }
             time_object = temp_time_object;
-            time_object.sort(function(a, b) {
+            time_object.sort(function (a, b) {
                 return timeToSeconds(a.start) - timeToSeconds(b.start);
             });
             e.target.innerText = "Loaded";
-            setTimeout(function() {
+            setTimeout(function () {
                 e.target.innerText = "Load";
             }, 1000);
             rewriteStamps(pEvent.target);
         });
 
         // update the variables according to input
-        document.getElementById("bufferSize").addEventListener("input", function(e) {
+        document.getElementById("bufferSize").addEventListener("input", function (e) {
             buffer_size = timeToSeconds(e.target.value);
             document.getElementById("timeBufferText").textContent = e.target.value;
         });
-        document.getElementById("repeatCount").addEventListener("input", function(e) {
+        document.getElementById("repeatCount").addEventListener("input", function (e) {
             repeat_count = e.target.value;
             document.getElementById("repeatCountText").textContent = e.target.value;
         });
-        document.getElementById("jumpNext").addEventListener("input", function(e) {
+        document.getElementById("jumpNext").addEventListener("input", function (e) {
             jump_next = e.target.checked;
         });
     })
@@ -112,13 +112,13 @@ function onPlayerReady(pEvent) {
 
 // rewrites the timestamps using time_object, adds the event listeners for seeking, playing, and stopping
 function rewriteStamps() {
-    document.getElementById("table-body").innerHTML = time_object.map(function(time) {
+    document.getElementById("table-body").innerHTML = time_object.map(function (time) {
         return `<tr><td class = "timestamp">${time.start + "-" + time.end}</td><td><p>${converter.makeHtml(time.description)}</p></td></tr>`
     }).join("");
-    document.querySelectorAll("#table-body > tr").forEach(function(row, index) {
-        row.addEventListener("click", function(e) {
+    document.querySelectorAll("#table-body > tr").forEach(function (row, index) {
+        row.addEventListener("click", function (e) {
             const time_string = row.querySelector(".timestamp").textContent;
-            const times = time_string.split("-").map(function(s) {
+            const times = time_string.split("-").map(function (s) {
                 return timeToSeconds(s);
             })
             player.seekTo(times[0] - buffer_size, true);
@@ -129,6 +129,7 @@ function rewriteStamps() {
             segment_jumped = true;
             resetBars();
             player.playVideo();
+            player.focus();
         })
     });
 }
@@ -173,7 +174,7 @@ function searchAndHighlight() {
             index = current_index;
         }
 
-        document.querySelectorAll("#table-body > tr").forEach(function(row, i) {
+        document.querySelectorAll("#table-body > tr").forEach(function (row, i) {
             row.classList.remove("table-success");
             row.classList.remove("table-warning");
         });
