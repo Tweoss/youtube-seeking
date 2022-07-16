@@ -1,20 +1,20 @@
 "use strict"
-var time_object = [
+let time_object = [
     { start: "1:20", end: "1:30", description: "This is a description" },
     { start: "1:34", end: "1:36", description: "**This is a strong description**" },
 ]
 
 // markdown to html converter
-var converter = new showdown.Converter();
+let converter = new showdown.Converter();
 
-var tag = document.createElement('script');
+let tag = document.createElement('script');
 tag.id = 'iframe-script';
 tag.src = 'https://www.youtube.com/iframe_api';
-var firstScriptTag = document.getElementsByTagName('script')[0];
+let firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 // player is the youtube player object
-var player,
+let player,
     // edge_interval is an interval to fire updating the time stamp selection or looping
     edge_interval = null,
     // number of repeats for each segment
@@ -129,7 +129,6 @@ function rewriteStamps() {
             segment_jumped = true;
             resetBars();
             player.playVideo();
-            player.focus();
         })
     });
 }
