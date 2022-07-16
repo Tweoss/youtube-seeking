@@ -30,11 +30,7 @@ var player,
     // current repeat
     current_repeat = 0,
     // whether or not a segment was recently jumped to. this allows for coloring while overriding the normal search order
-    segment_jumped = false,
-    // whether or not to fade between jumps
-    fade_between_jumps = false,
-    // if currently doing a fade in and out, don't try to do another fade
-    doing_fade = false;
+    segment_jumped = false;
 
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('video-div', {
@@ -111,9 +107,6 @@ function onPlayerReady(pEvent) {
         document.getElementById("jumpNext").addEventListener("input", function(e) {
             jump_next = e.target.checked;
         });
-        document.getElementById("fadeVolume").addEventListener("input", function(e) {
-            fade_between_jumps = e.target.checked;
-        });
     })
 }
 
@@ -152,7 +145,7 @@ function searchAndHighlight() {
         return;
     }
     // jump to the start for repeat
-    else if (seconds > current_segment.end && seconds < current_segment.end + 1 && current_repeat < repeat_count) {
+    else if (seconds > current_segment.end && seconds < current_segment.end + 2 && current_repeat < repeat_count) {
         current_repeat++;
         player.seekTo(current_segment.start, true);
         const bar = document.querySelector("#repeatProgress > div");
@@ -160,47 +153,14 @@ function searchAndHighlight() {
         bar.textContent = `${current_repeat}/${repeat_count}`;
     }
     // jump to the next segment
-    else if (seconds > current_segment.end && seconds < current_segment.end + 1 && jump_next && time_object[current_index + 1]) {
-        const seconds_to_fade = 0.5;
-        if (fade_between_jumps) {
-            let set_volume = player.getVolume(),
-                running_volume = set_volume,
-                volume_interval = 5,
-                is_decreasing = true;
-            // fade out and in
-            if (!doing_fade) {
-                doing_fade = true;
-                let interval = immediateInterval(() => {
-                    if (is_decreasing) {
-                        running_volume -= volume_interval;
-                        if (running_volume <= 0) {
-                            is_decreasing = false;
-                            running_volume = 0;
-                        }
-                    } else {
-                        running_volume += volume_interval;
-                        if (running_volume >= set_volume) {
-                            clearInterval(interval);
-                            doing_fade = false;
-                            running_volume = set_volume;
-                        }
-                    }
-                    console.log(running_volume, is_decreasing);
-                    player.setVolume(running_volume);
-                }, 1000 * 2 * seconds_to_fade * volume_interval / set_volume);
-            }
-        }
-
-        // set the time after the fade out or run immediately if not fading
-        setTimeout(function() {
-            player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size, true);
-            current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size, end: timeToSeconds(time_object[current_index + 1].end) + buffer_size };
-            // give priority to this segment
-            current_index = current_index + 1;
-            current_repeat = 0;
-            segment_jumped = true;
-            resetBars();
-        }, fade_between_jumps ? seconds_to_fade * 1000 : 0);
+    else if (seconds > current_segment.end && seconds < current_segment.end + 2 && jump_next) {
+        player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size, true);
+        current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size, end: timeToSeconds(time_object[current_index + 1].end) + buffer_size };
+        // give priority to this segment
+        current_index = current_index + 1;
+        current_repeat = 0;
+        segment_jumped = true;
+        resetBars();
     }
     // main logic to find and set segments, color, and set progress bars
     else {
@@ -286,10 +246,4 @@ function resetBars() {
     const repeatBar = document.querySelector("#repeatProgress > div");
     repeatBar.style.width = '0%';
     repeatBar.textContent = `0/${repeat_count}`;
-}
-
-// immediately executes the function, then sets the interval
-function immediateInterval(func, interval) {
-    func();
-    return setInterval(func, interval);
 }
