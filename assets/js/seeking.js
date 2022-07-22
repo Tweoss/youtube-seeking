@@ -21,8 +21,9 @@ let player,
     repeat_count = 0,
     // length of buffer size in seconds
     buffer_size = 0,
-    // whether or not to jump to the next segment
-    jump_next = false,
+    // what to do at the end of a segment
+    // @type {("continue"|"jump"|"stop")}
+    end_behaviour = "continue",
     // current segment's start and end accounting for buffer
     current_segment = { start: -Infinity, end: -Infinity },
     // current index, used to check if segment needs to be updated
@@ -104,8 +105,8 @@ function onPlayerReady(pEvent) {
             repeat_count = e.target.value;
             document.getElementById("repeatCountText").textContent = e.target.value;
         });
-        document.getElementById("jumpNext").addEventListener("input", function (e) {
-            jump_next = e.target.checked;
+        document.getElementById("endBehaviour").addEventListener("change", function (e) {
+            end_behaviour = e.target.value == "Continue" ? "continue" : e.target.value == "Jump to Next" ? "jump" : e.target.value == "Stop" ? "stop" : null;
         });
     })
 }
@@ -153,14 +154,18 @@ function searchAndHighlight() {
         bar.textContent = `${current_repeat}/${repeat_count}`;
     }
     // jump to the next segment
-    else if (seconds > current_segment.end && seconds < current_segment.end + 2 && jump_next) {
-        player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size, true);
-        current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size, end: timeToSeconds(time_object[current_index + 1].end) + buffer_size };
-        // give priority to this segment
-        current_index = current_index + 1;
-        current_repeat = 0;
-        segment_jumped = true;
-        resetBars();
+    else if (seconds > current_segment.end && seconds < current_segment.end + 2 && end_behaviour != "continue") {
+        if (end_behaviour == "jump") {
+            player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size, true);
+            current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size, end: timeToSeconds(time_object[current_index + 1].end) + buffer_size };
+            // give priority to this segment
+            current_index = current_index + 1;
+            current_repeat = 0;
+            segment_jumped = true;
+            resetBars();
+        } else if (end_behaviour == "stop") {
+            player.pauseVideo();
+        }
     }
     // main logic to find and set segments, color, and set progress bars
     else {
