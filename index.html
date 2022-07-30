@@ -40,21 +40,30 @@
         </div>
         <form>
             <div class="row">
-                <div class="col-4"><label class="form-label" for="repeats">Number of Repeats:&nbsp;<span
-                            id="repeatCountText">0</span></label><input class="form-range form-control" type="range"
-                        id="repeatCount" value="0" min="0" max="10" step="1">
+                <div class="col-4">
+                    <label class="form-label" for="repeats">Number of Repeats:&nbsp;
+                        <span id="repeatCountText">0</span>
+                    </label>
+                    <div class="input-group input-group-sm mb-3">
+                        <input class="form-control" type="number" id="repeatCount" value="0" min="0" step="1">
+                    </div>
                     <div class="progress" id="repeatProgress" style="color: var(--bs-white);">
                         <div class="progress-bar progress-bar-striped progress-bar-animated" aria-valuenow="0"
                             aria-valuemin="0" aria-valuemax="100" style="width: 0%;">0%</div>
                     </div>
                 </div>
-                <div class="col-4"><label class="form-label">
-                        <span>Time Buffer:&nbsp;</span>
-                        <span id="timeBufferText">0</span>
-                        <span>&nbsp;seconds</span>
+                <div class="col-4">
+                    <label class="form-label" for="bufferSize">
+                        <span>Time Buffer: &nbsp;[</span>
+                        <span id="timeBufferBeforeText">0</span>
+                        <span>,</span>
+                        <span id="timeBufferAfterText">0</span>
+                        <span>]</span>
                     </label>
-                    <input class="form-range form-control" type="range" id="bufferSize" value="0" min="0" max="60"
-                        step="1">
+                    <div class="input-group input-group-sm mb-3">
+                        <input class="form-control" type="number" id="bufferSizeBefore" value="0" min="0" step="1">
+                        <input class="form-control" type="number" id="bufferSizeAfter" value="0" min="0" step="1">
+                    </div>
                     <div class="progress" id="timeProgress" style="color: white;">
                         <div class="progress-bar progress-bar-striped progress-bar-animated" aria-valuenow="0"
                             aria-valuemin="0" aria-valuemax="100" style="width: 0%;">0%</div>
@@ -75,8 +84,8 @@
             <footer class="footer-dark" style="background: rgba(40,45,50,0);">
                 <div class="container">
                     <div class="row">
-                        <div class="col item social"><a href="https://github.com/tweoss/youtube-seeking" target="_blank"><i
-                                    class="icon ion-social-github"></i></a><a
+                        <div class="col item social"><a href="https://github.com/tweoss/youtube-seeking"
+                                target="_blank"><i class="icon ion-social-github"></i></a><a
                                 href="https://github.com/Tweoss/youtube-seeking/issues/" target="_blank"><i
                                     class="icon ion-bug"></i></a></div>
                     </div>

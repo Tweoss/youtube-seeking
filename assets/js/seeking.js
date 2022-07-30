@@ -20,7 +20,7 @@ let player,
     // number of repeats for each segment
     repeat_count = 0,
     // length of buffer size in seconds
-    buffer_size = 0,
+    buffer_size = [0, 0],
     // what to do at the end of a segment
     // @type {("continue"|"jump"|"stop")}
     end_behaviour = "continue",
@@ -97,9 +97,13 @@ function onPlayerReady(pEvent) {
         });
 
         // update the variables according to input
-        document.getElementById("bufferSize").addEventListener("input", function (e) {
-            buffer_size = timeToSeconds(e.target.value);
-            document.getElementById("timeBufferText").textContent = e.target.value;
+        document.getElementById("bufferSizeBefore").addEventListener("input", function (e) {
+            buffer_size[0] = timeToSeconds(e.target.value);
+            document.getElementById("timeBufferBeforeText").textContent = e.target.value;
+        });
+        document.getElementById("bufferSizeAfter").addEventListener("input", function (e) {
+            buffer_size[1] = timeToSeconds(e.target.value);
+            document.getElementById("timeBufferAfterText").textContent = e.target.value;
         });
         document.getElementById("repeatCount").addEventListener("input", function (e) {
             repeat_count = e.target.value;
@@ -122,9 +126,9 @@ function rewriteStamps() {
             const times = time_string.split("-").map(function (s) {
                 return timeToSeconds(s);
             })
-            player.seekTo(times[0] - buffer_size, true);
+            player.seekTo(times[0] - buffer_size[0], true);
             // give priority to this segment
-            current_segment = { start: times[0] - buffer_size, end: times[1] + buffer_size };
+            current_segment = { start: times[0] - buffer_size[0], end: times[1] + buffer_size[1] };
             current_index = index;
             current_repeat = 0;
             segment_jumped = true;
@@ -156,8 +160,8 @@ function searchAndHighlight() {
     // jump to the next segment
     else if (seconds > current_segment.end && seconds < current_segment.end + 2 && end_behaviour != "continue") {
         if (end_behaviour == "jump") {
-            player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size, true);
-            current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size, end: timeToSeconds(time_object[current_index + 1].end) + buffer_size };
+            player.seekTo(timeToSeconds(time_object[current_index + 1].start) - buffer_size[0], true);
+            current_segment = { start: timeToSeconds(time_object[current_index + 1].start) - buffer_size[0], end: timeToSeconds(time_object[current_index + 1].end) + buffer_size[1] };
             // give priority to this segment
             current_index = current_index + 1;
             current_repeat = 0;
@@ -196,8 +200,8 @@ function searchAndHighlight() {
         }
 
         current_segment = {
-            start: timeToSeconds(time_object[index].start) - buffer_size,
-            end: timeToSeconds(time_object[index].end) + buffer_size,
+            start: timeToSeconds(time_object[index].start) - buffer_size[0],
+            end: timeToSeconds(time_object[index].end) + buffer_size[1],
         };
 
         // if its the same as the last segment and only changed b/c of buffer size, we should not keep repeating
