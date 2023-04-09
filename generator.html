@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <p>Hit right shift to add timestamps. </p>
+    <input id="video-id" type="text" placeholder="Video ID">
+    <br>
+    <br>
+    <textarea id="output" style="min-height: 100px; min-width: 100px;"></textarea>
+    <br>
+    <br>
+    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+    <div id="player"></div>
+    <script>
+        function handle_id(e) {
+            const videoId = e.target.value;
+            player.loadVideoById(videoId);
+            document.querySelector("#output").value += videoId;
+            document.querySelector("#video-id").removeEventListener("change", handle_id);
+        }
+        document.querySelector("#video-id").addEventListener("change", handle_id);
+        let start_not_end_time = true;
+        document.addEventListener("keydown", function (e) {
+            if (e.code === "ShiftRight") {
+                let time = Math.round(player.getCurrentTime());
+                document.querySelector("#output").value += start_not_end_time ? "\n" + time + "-" : time + "\n";
+                start_not_end_time = !start_not_end_time;
+                document.querySelector("#output").scrollBy(0, 100);
+            }
+        });
+
+        // 2. This code loads the IFrame Player API code asynchronously.
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 3. This function creates an <iframe> (and YouTube player)
+        //    after the API code downloads.
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: 'rA4WIZisLgc',
+                playerVars: {
+                    'playsinline': 1
+                },
+                events: {
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>
