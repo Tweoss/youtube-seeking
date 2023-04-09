@@ -1,8 +1,5 @@
 "use strict"
-let time_object = [
-    { start: "1:20", end: "1:30", description: "This is a description" },
-    { start: "1:34", end: "1:36", description: "**This is a strong description**" },
-]
+let time_object = [];
 
 // markdown to html converter
 let converter = new showdown.Converter();
@@ -63,11 +60,15 @@ function onPlayerStateChange(event) {
 function onPlayerReady(pEvent) {
     player = pEvent.target;
     window.addEventListener('load', function () {
-        rewriteStamps(pEvent.target);
+        if (this.localStorage.getItem("text_input") != null) {
+            loadFromString(this.localStorage.getItem("text_input"));
+            document.getElementById("loadTextArea").value = this.localStorage.getItem("text_input");
+        } else {
+            loadFromString(INITIAL_STRING);
+            document.getElementById("loadTextArea").value = INITIAL_STRING;
+        }
 
-        // loading custom files
-        document.getElementById("loadConfirm").addEventListener("click", function (e) {
-            let data = document.getElementById("loadTextArea").value;
+        function loadFromString(data) {
             data = data.split('\n');
             let video_id = data.shift();
             player.cueVideoById({ 'videoId': video_id });
@@ -89,11 +90,20 @@ function onPlayerReady(pEvent) {
             time_object.sort(function (a, b) {
                 return timeToSeconds(a.start) - timeToSeconds(b.start);
             });
+            rewriteStamps(pEvent.target);
+        }
+
+        // loading custom files
+        document.getElementById("loadConfirm").addEventListener("click", function (e) {
+            let data = document.getElementById("loadTextArea").value;
+            localStorage.setItem("text_input", data);
+            loadFromString(data);
             e.target.innerText = "Loaded";
+            // close modal
+            e.target.parentElement.firstChild.click();
             setTimeout(function () {
                 e.target.innerText = "Load";
             }, 1000);
-            rewriteStamps(pEvent.target);
         });
 
         // update the variables according to input
@@ -256,3 +266,48 @@ function resetBars() {
     repeatBar.style.width = '0%';
     repeatBar.textContent = `0/${repeat_count}`;
 }
+
+const INITIAL_STRING = `xcaUGsL2EpI
+0:17-1:03
+Beginning before repat
+1:32-1:58
+After repeat to before A
+2:42-3:03
+After B to before repeat
+6:17-6:21
+4 bars of C
+6:39-6:47
+6 before D to D
+7:08-7:16
+6 before E to E
+7:30-8:34
+before F to end of first movement
+10:06-10:25
+1 before B to repeat
+10:52-11:17
+before C to 3rd of C
+12:52-13:06
+1 before E to 8 after E
+13:38-13:42
+End of Second
+14:21-14:26
+Start of Third
+14:46-15:07
+Before A to Trio
+16:27-16:34
+End of third
+18:27-18:31
+Start of Fourth 
+19:06-19:14
+Before A to 9 after A
+19:45-19:58
+First ending
+21:39-21:52
+C to 17 after C
+22:34-22:53
+18 before E to E
+23:10-23:15
+5 before F to 3 after F
+23:28-23:43
+20 before end to end
+`;
