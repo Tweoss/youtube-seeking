@@ -9,4 +9,6 @@ Check [this file](https://github.com/Tweoss/youtube-seeking/blob/master/examples
 
 The number of repeats (number of repetitions = repeats + 1) and the buffer before and after the timestamp in seconds can be adjusted via number inputs. There are three possible behaviours when reaching the end of an excerpt segment: continue (which simply proceeds with the recording as normal), jump to next (which skips to the next excerpt's timestamp), and stop (which pauses the player).
 
+# Generating Configuration
 
+Visit the [generation tool](https://tweoss.github.io/youtube-seeking/generator.html) to create the text configuration more easily. Hit `RightShift` while inside the textbox to append timestamps and add your description ergonomically. 
