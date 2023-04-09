@@ -15,8 +15,7 @@
         function handle_id(e) {
             const videoId = e.target.value;
             player.loadVideoById(videoId);
-            document.querySelector("#output").value += videoId;
-            document.querySelector("#video-id").removeEventListener("change", handle_id);
+            document.querySelector("#output").value = videoId;
         }
         document.querySelector("#video-id").addEventListener("change", handle_id);
         let start_not_end_time = true;
