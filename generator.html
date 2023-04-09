@@ -15,14 +15,14 @@
         function handle_id(e) {
             const videoId = e.target.value;
             player.loadVideoById(videoId);
-            document.querySelector("#output").value = videoId;
+            document.querySelector("#output").value = videoId = "\n";
         }
         document.querySelector("#video-id").addEventListener("change", handle_id);
         let start_not_end_time = true;
         document.addEventListener("keydown", function (e) {
             if (e.code === "ShiftRight") {
                 let time = Math.round(player.getCurrentTime());
-                document.querySelector("#output").value += start_not_end_time ? "\n" + time + "-" : time + "\n";
+                document.querySelector("#output").value += start_not_end_time ? time + "-" : time + "\n";
                 start_not_end_time = !start_not_end_time;
                 document.querySelector("#output").scrollBy(0, 100);
             }
