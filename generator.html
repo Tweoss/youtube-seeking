@@ -22,9 +22,17 @@
         document.addEventListener("keydown", function (e) {
             if (e.code === "ShiftRight") {
                 let time = Math.round(player.getCurrentTime());
-                document.querySelector("#output").value += start_not_end_time ? time + "-" : time + "\n";
-                start_not_end_time = !start_not_end_time;
-                document.querySelector("#output").scrollBy(0, 100);
+                let formatted_time = Math.floor(time / 60).toString().padStart(2, '0') + ":" + (time % 60).toString().padStart(2, '0');
+                let hours = Math.floor(time / 60 / 60);
+                if (hours > 0) {
+                  formatted_time = hours.toString() + ":" + formatted_time;
+                }
+                let textbox = document.querySelector("#output");
+                let text_value = textbox.value;
+                let cursor_pos = textbox.selectionEnd;
+                textbox.value = text_value.slice(0, cursor_pos) + formatted_time +  text_value.slice(cursor_pos);
+                textbox.selectionStart = cursor_pos + formatted_time.length;
+                textbox.selectionEnd = cursor_pos + formatted_time.length;
             }
         });
 
