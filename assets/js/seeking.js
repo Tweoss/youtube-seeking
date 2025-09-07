@@ -57,72 +57,69 @@ function onPlayerStateChange(event) {
     }
 }
 
-function onPlayerReady(pEvent) {
-    player = pEvent.target;
-    window.addEventListener('load', function () {
-        if (this.localStorage.getItem("text_input") != null) {
-            loadFromString(this.localStorage.getItem("text_input"));
-            document.getElementById("loadTextArea").value = this.localStorage.getItem("text_input");
-        } else {
-            loadFromString(INITIAL_STRING);
-            document.getElementById("loadTextArea").value = INITIAL_STRING;
-        }
+function onPlayerReady() {
+    if (localStorage.getItem("text_input") != null) {
+        loadFromString(localStorage.getItem("text_input"));
+        document.getElementById("loadTextArea").value = localStorage.getItem("text_input");
+    } else {
+        loadFromString(INITIAL_STRING);
+        document.getElementById("loadTextArea").value = INITIAL_STRING;
+    }
 
-        function loadFromString(data) {
-            data = data.split('\n');
-            let video_id = data.shift();
-            player.cueVideoById({ 'videoId': video_id });
-            let temp_time_object = [];
-            let temp_time;
-            for (let i = 0; i < data.length; i++) {
-                const element = data[i];
-                if (i % 2 == 0) {
-                    temp_time = new Object();
-                    const time_string = element.split("-");
-                    temp_time.start = time_string[0];
-                    temp_time.end = time_string[1];
-                } else {
-                    temp_time.description = element.replace(/\\n/g, '\n');
-                    temp_time_object.push(temp_time);
-                }
+    function loadFromString(data) {
+        data = data.split('\n');
+        let video_id = data.shift();
+        player.cueVideoById({ 'videoId': video_id });
+        let temp_time_object = [];
+        let temp_time;
+        for (let i = 0; i < data.length; i++) {
+            const element = data[i];
+            if (i % 2 == 0) {
+                temp_time = new Object();
+                const time_string = element.split("-");
+                temp_time.start = time_string[0];
+                temp_time.end = time_string[1];
+            } else {
+                temp_time.description = element.replace(/\\n/g, '\n');
+                temp_time_object.push(temp_time);
             }
-            time_object = temp_time_object;
-            time_object.sort(function (a, b) {
-                return timeToSeconds(a.start) - timeToSeconds(b.start);
-            });
-            rewriteStamps(pEvent.target);
         }
+        time_object = temp_time_object;
+        time_object.sort(function (a, b) {
+            return timeToSeconds(a.start) - timeToSeconds(b.start);
+        });
+        rewriteStamps(player);
+    }
 
-        // loading custom files
-        document.getElementById("loadConfirm").addEventListener("click", function (e) {
-            let data = document.getElementById("loadTextArea").value;
-            localStorage.setItem("text_input", data);
-            loadFromString(data);
-            e.target.innerText = "Loaded";
-            // close modal
-            e.target.parentElement.firstChild.click();
-            setTimeout(function () {
-                e.target.innerText = "Load";
-            }, 1000);
-        });
+    // loading custom files
+    document.getElementById("loadConfirm").addEventListener("click", function (e) {
+        let data = document.getElementById("loadTextArea").value;
+        localStorage.setItem("text_input", data);
+        loadFromString(data);
+        e.target.innerText = "Loaded";
+        // close modal
+        e.target.parentElement.firstChild.click();
+        setTimeout(function () {
+            e.target.innerText = "Load";
+        }, 1000);
+    });
 
-        // update the variables according to input
-        document.getElementById("bufferSizeBefore").addEventListener("input", function (e) {
-            buffer_size[0] = timeToSeconds(e.target.value);
-            document.getElementById("timeBufferBeforeText").textContent = e.target.value;
-        });
-        document.getElementById("bufferSizeAfter").addEventListener("input", function (e) {
-            buffer_size[1] = timeToSeconds(e.target.value);
-            document.getElementById("timeBufferAfterText").textContent = e.target.value;
-        });
-        document.getElementById("repeatCount").addEventListener("input", function (e) {
-            repeat_count = e.target.value;
-            document.getElementById("repeatCountText").textContent = e.target.value;
-        });
-        document.getElementById("endBehaviour").addEventListener("change", function (e) {
-            end_behaviour = e.target.value == "Continue" ? "continue" : e.target.value == "Jump to Next" ? "jump" : e.target.value == "Stop" ? "stop" : null;
-        });
-    })
+    // update the variables according to input
+    document.getElementById("bufferSizeBefore").addEventListener("input", function (e) {
+        buffer_size[0] = timeToSeconds(e.target.value);
+        document.getElementById("timeBufferBeforeText").textContent = e.target.value;
+    });
+    document.getElementById("bufferSizeAfter").addEventListener("input", function (e) {
+        buffer_size[1] = timeToSeconds(e.target.value);
+        document.getElementById("timeBufferAfterText").textContent = e.target.value;
+    });
+    document.getElementById("repeatCount").addEventListener("input", function (e) {
+        repeat_count = e.target.value;
+        document.getElementById("repeatCountText").textContent = e.target.value;
+    });
+    document.getElementById("endBehaviour").addEventListener("change", function (e) {
+        end_behaviour = e.target.value == "Continue" ? "continue" : e.target.value == "Jump to Next" ? "jump" : e.target.value == "Stop" ? "stop" : null;
+    });
 }
 
 // rewrites the timestamps using time_object, adds the event listeners for seeking, playing, and stopping
